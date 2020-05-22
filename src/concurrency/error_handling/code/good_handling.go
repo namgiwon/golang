@@ -1,11 +1,12 @@
-package main
+package code
 
 import (
 	"fmt"
 	"net/http"
 )
 
-func main() {
+// 응답을 받는 고루틴에서 에러에 관련된 아무런 정보를 알 수 없다.
+func GoodHandling() {
 	checkStatus := func(done <-chan interface{}, urls ...string) <-chan *http.Response {
 		responses := make(chan *http.Response)
 
