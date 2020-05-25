@@ -9,7 +9,6 @@ import (
 func BadHandling() {
 	checkStatus := func(done <-chan interface{}, urls ...string) <-chan *http.Response {
 		responses := make(chan *http.Response)
-
 		go func() {
 			defer close(responses)
 			for _, url := range urls {
@@ -18,6 +17,7 @@ func BadHandling() {
 					fmt.Println(err)
 					continue
 				}
+
 				select {
 				case <-done:
 					return
@@ -29,11 +29,12 @@ func BadHandling() {
 	}
 
 	done := make(chan interface{})
+	defer close(done)
 
-	urls := []string{"https://google.co.kr", "https://badhost.com"}
+	urls := []string{"https://naver.com", "https://badhost.com"}
 
-	for response := range checkStatus(done, urls...) {
-		fmt.Printf("Response : %v\n", response)
+	for resp := range checkStatus(done, urls...) {
+		fmt.Printf("Response : %v\n", resp)
 	}
 
 }

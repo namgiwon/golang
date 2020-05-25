@@ -6,7 +6,9 @@ import (
 )
 
 func main() {
-	fmt.Println("main")
+	fmt.Println("bad")
 	code.BadHandling()
+	fmt.Println("good")
+	code.GoodHandling()
 
 }
