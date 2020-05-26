@@ -1,12 +1,62 @@
 package main
 
-import (
-	"concurrency/pipeline/code"
-	"fmt"
-)
+import "fmt"
 
 func main() {
-	values := []int{1, 2, 3, 4, 5}
-	multipliedValues := code.Multiply(values, 3)
-	fmt.Println(multipliedValues)
+	generator := func(done <-chan interface{}, integers ...int) <-chan int {
+		intStream := make(chan int)
+		go func() {
+			defer close(intStream)
+			for _, i := range integers {
+				select {
+				case <-done:
+					return
+				case intStream <- i:
+				}
+			}
+		}()
+		return intStream
+	}
+
+	multiply := func(done <-chan interface{}, intStream <-chan int, multiplier int) <-chan int {
+		multipliedStream := make(chan int)
+		go func() {
+			defer close(multipliedStream)
+			for i := range intStream {
+				select {
+				case <-done:
+					return
+				case multipliedStream <- i * multiplier:
+				}
+			}
+		}()
+		return multipliedStream
+	}
+
+	add := func(done <-chan interface{}, intStream <-chan int, additive int) <-chan int {
+		addedStream := make(chan int)
+		go func() {
+			defer close(addedStream)
+			for i := range intStream {
+				select {
+				case <-done:
+					return
+				case addedStream <- i + additive:
+				}
+			}
+		}()
+		return addedStream
+	}
+
+	done := make(chan interface{})
+	defer close(done)
+
+	intStream := generator(done, 1, 2, 3, 4, 5)
+
+	result := multiply(done, add(done, intStream, 4), 2)
+
+	for i := range result {
+		fmt.Println(i)
+	}
+
 }
